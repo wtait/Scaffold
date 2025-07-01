@@ -1,6 +1,8 @@
 # Lovable Clone - AI-Powered Web App Builder
 
-A real-time AI-powered web application builder inspired by [lovable.dev](https://lovable.dev). This project demonstrates how to build a simple agent using sandboxed environments, MCP servers, and BAML. It's hosted on [beam.cloud](https://beam.cloud)
+A real-time AI-powered web application builder inspired by [lovable.dev](https://lovable.dev). This project demonstrates how to build a simple agent using sandboxed environments, MCP servers, and [BAML](https://github.com/BoundaryML/baml). It's hosted on [beam.cloud](https://beam.cloud).
+
+![Lovable Clone Demo](assets/lovable-demo.gif)
 
 ## ️ Architecture
 
@@ -9,15 +11,9 @@ The application consists of four main components:
 1. **Model Client** - BAML-based client to talk to LLM in an RPC-like way
 2. **Sandbox Environment** - Isolated compute sandbox for running preview environments (React app we're editing)
 3. **MCP Server** - Tools for managing the sandbox and code operations
-4. **WebSocket Agent** - Real-time communication between frontend and AI
+4. **WS-Based Agent** - Real-time server for communication between client and agent
 
-##  Features
-
-- **Real-time Code Generation** - AI generates and modifies React applications based on user feedback
-- **Live Preview** - See changes instantly in an iframe preview
-- **Sandboxed Environment** - Secure, isolated development environment
-- **Modern Tech Stack** - React, Vite, Tailwind CSS, shadcn/ui components
-- **Streaming Updates** - Real-time progress updates during code generation
+![Architecture Diagram](assets/arch.png)
 
 ## 📋 Prerequisites
 
@@ -83,25 +79,24 @@ cd frontend
 npm run dev
 ```
 
-### Using the Application
+### End to end flow for iterating on the app:
 
-1. Open the frontend in your browser
-2. Enter a description of the web app you want to build
-3. Watch as the AI generates code in real-time
-4. See the live preview update as changes are made
-5. Provide feedback to iterate on the design
+1. Start the frontend: `cd frontend && npm run dev`
+2. In a new terminal, start the MCP server: `beam serve src/tools.py:s` -> copy URL displayed in terminal
+3. In a new terminal window, start the agent: `beam serve src/agent.py:agent` -> modify the URL in src/agent.py to point to the above MCP server URL
+4. In the `frontend` directory, copy .env.template to .env, and replace the the token with your `Beam` token, and the URL with the websocket URL printed in th
+5. Start interacting with the app in your browser!
+6. If you want to change the prompt, edit `baml_src/build.baml` and run `make generate` to regenerate the BAML clients
 
-## ️ Configuration
+### BAML / Prompts
 
-### BAML Configuration
-
-The AI prompts are defined in `baml_src/build.baml`:
+Prompts are defined in `baml_src/build.baml`:
 
 - **EditCode Function** - Main function for code generation
 - **CodeChanges Schema** - Defines the structure of AI responses
 - **Test Cases** - Validate prompt behavior
 
-### Sandbox Configuration
+### Sandbox/MCP server config
 
 The sandbox environment is configured in `src/tools.py`:
 
