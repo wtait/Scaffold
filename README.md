@@ -4,6 +4,8 @@ A real-time AI-powered web application builder inspired by [lovable.dev](https:/
 
 ![Lovable Clone Demo](assets/lovable-demo.gif)
 
+> To learn about the architecture in detail, read the full post [on our blog](https://www.beam.cloud/blog/agentic-apps).
+
 ## ️ Architecture
 
 The application consists of four main components:
@@ -20,17 +22,19 @@ The application consists of four main components:
 - Python 3.12+
 - Node.js 20+
 - OpenAI API key
-- Beam account for hosting (sandboxes, frontend, mcp server)
+- [Beam](https://beam.cloud) account for hosting ([sandboxes](https://docs.beam.cloud/v2/sandbox/overview), frontend, mcp server)
 
 ## 🛠️ Installation
 
 1. **Clone the repository**
+
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/beam-cloud/lovable-clone
    cd lovable-clone
    ```
 
 2. **Install Python dependencies**
+
    ```bash
    pip install -r requirements.txt
    # or using uv
@@ -38,6 +42,7 @@ The application consists of four main components:
    ```
 
 3. **Install frontend dependencies**
+
    ```bash
    cd frontend
    npm install
@@ -46,7 +51,7 @@ The application consists of four main components:
 4. **Set up secrets**
    ```bash
    beam secret create OPENAI_API_KEY 'your-openai-api-key'
-   beam secret create LOVEABLE_MCP_URL 'your-mcp-server-url'
+   beam secret create LOVABLE_MCP_URL 'your-mcp-server-url'
    ```
 
 ## 🎯 Usage
@@ -60,6 +65,7 @@ beam serve src/tools.py:s
 ```
 
 This starts the FastMCP server with tools for:
+
 - `create_app_environment` - Spins up a new React sandbox
 - `load_code` - Retrieves code from the sandbox
 - `edit_code` - Updates code in the sandbox
@@ -84,7 +90,7 @@ npm run dev
 1. Start the frontend: `cd frontend && npm run dev`
 2. In a new terminal, start the MCP server: `beam serve src/tools.py:s` -> copy URL displayed in terminal
 3. In a new terminal window, start the agent: `beam serve src/agent.py:agent` -> modify the URL in src/agent.py to point to the above MCP server URL
-4. In the `frontend` directory, copy .env.template to .env, and replace the the token with your `Beam` token, and the URL with the websocket URL printed in th
+4. In the `frontend` directory, copy `.env.template` to `.env`, and replace the token with your `Beam` [token](https://platform.beam.cloud/settings/api-keys), and the URL with the websocket URL printed in the shell
 5. Start interacting with the app in your browser!
 6. If you want to change the prompt, edit `baml_src/build.baml` and run `make generate` to regenerate the BAML clients
 
