@@ -179,7 +179,7 @@ class Agent:
 
 
 async def _load_agent():
-    agent = Agent(mcp_url=os.getenv("LOVEABLE_MCP_URL"))
+    agent = Agent(mcp_url=os.getenv("LOVABLE_MCP_URL"))
     print("Loaded agent")
     return agent
 
@@ -191,7 +191,7 @@ async def _load_agent():
     image=Image(
         python_packages="requirements.txt", python_version=PythonVersion.Python312
     ),
-    secrets=["OPENAI_API_KEY", "LOVEABLE_MCP_URL"],
+    secrets=["OPENAI_API_KEY", "LOVABLE_MCP_URL"],
     concurrent_requests=1000,
     keep_warm_seconds=300,
 )
