@@ -1,21 +1,21 @@
-import styled from "styled-components";
-import { Icon, Typography, Avatar } from "@beamcloud/design-system";
-import {
-  faHeart,
-  faPlay,
-  faSpinner,
-  faRotateRight,
-  faUpRightFromSquare,
-  faMobile,
-  faTablet,
-  faDesktop,
-} from "@fortawesome/pro-regular-svg-icons";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useMessageBus } from "../../hooks/useMessageBus";
-import { BEAM_CONFIG } from "../../config/beam";
 import { MessageType, Sender } from "../../types/messages";
+import {
+  faDesktop,
+  faHeart,
+  faMobile,
+  faPlay,
+  faRotateRight,
+  faSpinner,
+  faTablet,
+  faUpRightFromSquare,
+} from "@fortawesome/pro-regular-svg-icons";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { BEAM_CONFIG } from "../../config/beam";
 import type { Message } from "../../types/messages";
+import styled from "styled-components";
 import { useLocation } from "react-router-dom";
+import { useMessageBus } from "../../hooks/useMessageBus";
 
 const DEVICE_SPECS = {
   mobile: { width: 390, height: 844 },
@@ -505,13 +505,9 @@ const Create = () => {
       >
         Connecting to Workspace...
       </AnimatedTypography>
-      <Typography
-        variant="textSm"
-        color="gray10"
-        style={{ marginTop: "12px", textAlign: "center" }}
-      >
+      <p style={{ marginTop: "12px", textAlign: "center" }}>
         Please wait while we setup your workspace and load the website.
-      </Typography>
+      </p>
     </IframeErrorContainer>
   );
 
@@ -525,13 +521,9 @@ const Create = () => {
       >
         Updating Workspace...
       </AnimatedTypography>
-      <Typography
-        variant="textSm"
-        color="gray10"
-        style={{ marginTop: "12px", textAlign: "center" }}
-      >
+      <p style={{ marginTop: "12px", textAlign: "center" }}>
         Please wait while we apply your changes to the website.
-      </Typography>
+      </p>
     </IframeErrorContainer>
   );
 
@@ -539,7 +531,7 @@ const Create = () => {
     <PageContainer>
       <Sidebar style={{ width: `${sidebarWidth}px` }}>
         <BeamHeader>
-          <Avatar name="Beam" />
+          <div>Beam</div>
         </BeamHeader>
 
         <ChatHistory ref={chatHistoryRef}>
@@ -552,13 +544,15 @@ const Create = () => {
                 isUser={msg.data.sender === Sender.USER}
               >
                 <MessageBubble isUser={msg.data.sender === Sender.USER}>
-                  <Typography
-                    variant="textSm"
-                    color={msg.data.sender === Sender.USER ? "white" : "gray12"}
-                    style={{ whiteSpace: "pre-wrap" }}
+                  <p
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      color:
+                        msg.data.sender === Sender.USER ? "white" : "gray12",
+                    }}
                   >
                     {msg.data.text}
-                  </Typography>
+                  </p>
                   {msg.data.isStreaming && (
                     <TypingIndicator>
                       <TypingDot />

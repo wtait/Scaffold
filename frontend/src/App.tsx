@@ -1,8 +1,10 @@
 import "./App.css";
-import styled from "styled-components";
-import { Routes, Route } from "react-router-dom";
-import CreateRoute from "./screens/Create";
+
+import { Route, Routes } from "react-router-dom";
+
+// import CreateRoute from "./screens/Create";
 import NewScreen from "./screens/New";
+import styled from "styled-components";
 
 const App: React.FC = () => {
   return (
@@ -11,7 +13,7 @@ const App: React.FC = () => {
       <ContentContainer>
         <Routes>
           <Route path="/" element={<NewScreen />} />
-          <Route path="/create" element={<CreateRoute />} />
+          {/* <Route path="/create" element={<CreateRoute />} /> */}
         </Routes>
       </ContentContainer>
     </Container>
@@ -27,7 +29,6 @@ const Container = styled.div`
   justify-content: start;
   width: 100vw;
   height: 100vh;
-  background-color: ${({ theme }) => theme.colors.gray3};
   overflow: hidden;
 `;
 

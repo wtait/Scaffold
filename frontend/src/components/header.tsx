@@ -1,50 +1,43 @@
 "use client";
+
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList } from "./ui/breadcrumb";
 import {
-  Avatar,
-  BreadcrumbItem,
-  Breadcrumbs,
-  Icon,
-  Menu,
-  MenuContent,
-  MenuGroup,
-  MenuItem,
-  MenuTrigger,
-  Typography,
-} from "@beamcloud/design-system";
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
+import { MenuIcon, ServerIcon } from "lucide-react";
+
+import { DropdownMenu } from "./ui/dropdown-menu";
+import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import styled from "styled-components";
-import { faServer } from "@fortawesome/pro-regular-svg-icons";
 
 const Header = () => {
   return (
     <Container>
       <BreadcrumbsWrapper>
-        <Breadcrumbs
-          separatorImageDimension="20px"
-          separatorImageSrc="/static/slash.svg"
-        >
-          <BreadcrumbItem>
-            <Icon icon={faServer} size="sm" color="gray14" />
-          </BreadcrumbItem>
-        </Breadcrumbs>
+        <BreadcrumbList>
+          <Breadcrumb>
+            <BreadcrumbItem>
+              <ServerIcon />
+            </BreadcrumbItem>
+          </Breadcrumb>
+        </BreadcrumbList>
       </BreadcrumbsWrapper>
       <Navigation>
-        <Menu>
-          <StyledMenuTrigger>
-            <Avatar name={"Test"} />
-          </StyledMenuTrigger>
-          <MenuContent align="end" sideOffset={4} minWidth="360px">
-            <MenuGroup>
-              <MenuItem>
-                <Typography tag="span" variant="textXs" color="gray11">
-                  Organization
-                </Typography>
-                <Typography tag="span" variant="textSmPlus" color="gray12">
-                  Test
-                </Typography>
-              </MenuItem>
-            </MenuGroup>
-          </MenuContent>
-        </Menu>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <MenuIcon />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" sideOffset={4}>
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                <span>Organization</span>
+                <span>Test</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </Navigation>
     </Container>
   );
@@ -61,7 +54,6 @@ const Container = styled.header`
   gap: 24px;
   width: 100%;
   flex-shrink: 0;
-  background-color: ${({ theme }) => theme.colors.gray5};
 `;
 
 const BreadcrumbsWrapper = styled.div`
@@ -80,32 +72,4 @@ const Navigation = styled.div`
   padding: 0px;
   gap: 20px;
   margin-bottom: 10px;
-`;
-
-const ChevronIcon = styled(Icon)`
-  && {
-    color: inherit;
-    transition: transform 0.2s linear;
-  }
-`;
-
-const StyledMenuTrigger = styled(MenuTrigger)`
-  && {
-    width: max-content;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    padding: 0px;
-    gap: 8px;
-    cursor: pointer;
-    color: ${(props) => props.theme.colors.gray11};
-    &:hover {
-      color: ${(props) => props.theme.colors.gray12};
-    }
-
-    &[data-state="open"] ${ChevronIcon} {
-      transform: rotate(180deg);
-    }
-  }
 `;

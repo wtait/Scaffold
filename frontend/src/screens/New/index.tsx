@@ -1,7 +1,7 @@
 import React, { useState } from "react";
+
+import { Textarea } from "@/components/ui/textarea";
 import styled from "styled-components";
-import { Typography, Input, Button, Icon } from "@beamcloud/design-system";
-import { faPaperclip } from "@fortawesome/pro-regular-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 const NewScreen: React.FC = () => {
@@ -18,48 +18,22 @@ const NewScreen: React.FC = () => {
     <Outer>
       <CenterColumn>
         <LogoTitleGroup>
-          <Typography
-            variant="textXl"
-            color="gray12"
-            style={{
-              fontWeight: 700,
-              marginTop: 24,
-              textAlign: "center",
-              letterSpacing: "-0.02em",
-              fontSize: "2.25rem",
-              lineHeight: "2.75rem",
-            }}
-          >
-            What do you want build?
-          </Typography>
-          <Typography
-            variant="textLg"
-            color="gray10"
-            style={{
-              marginTop: 12,
-              marginBottom: 40,
-              textAlign: "center",
-              fontWeight: 400,
-              fontSize: "1.25rem",
-              lineHeight: "1.75rem",
-              letterSpacing: "-0.01em",
-            }}
-          >
+          <h1 className="text-2xl font-bold">What do you want build?</h1>
+          <p className="text-lg font-normal">
             Build a website with Beam Sandboxes.
-          </Typography>
+          </p>
         </LogoTitleGroup>
         <PromptCard>
           <TextareaWrapper>
-            <PaperclipIcon>
-              <Icon icon={faPaperclip} color="gray8" />
-            </PaperclipIcon>
-            <StyledTextarea
-              as="textarea"
+            <PaperclipIcon />
+            <Textarea
               rows={3}
               placeholder="What do you want to build?"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setInput(e.target.value)
+              }
+              onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleStartBuilding();
@@ -67,25 +41,17 @@ const NewScreen: React.FC = () => {
               }}
             />
             <RunButton>
-              <Button size="sm" onClick={handleStartBuilding}>
-                Start Building
-              </Button>
+              <button onClick={handleStartBuilding}>Start Building</button>
             </RunButton>
           </TextareaWrapper>
         </PromptCard>
         <TemplatesSection>
           <TemplatesHeader>
-            <Typography
-              variant="textSmPlus"
-              color="gray12"
-              style={{ marginBottom: 8 }}
-            >
-              Quickstart templates
-            </Typography>
-            <Typography variant="textSm" color="gray9">
+            <h2 style={{ marginBottom: 8 }}>Quickstart templates</h2>
+            <p>
               Get started instantly with a framework or integration of your
               choice.
-            </Typography>
+            </p>
           </TemplatesHeader>
         </TemplatesSection>
       </CenterColumn>
@@ -98,7 +64,6 @@ export default NewScreen;
 const Outer = styled.div`
   min-height: 100vh;
   width: 100vw;
-  background: ${({ theme }) => theme.colors.gray1};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -121,7 +86,6 @@ const LogoTitleGroup = styled.div`
 `;
 
 const PromptCard = styled.div`
-  background: ${({ theme }) => theme.colors.gray4};
   border-radius: 22px;
   padding: 0px 0px 0px 0px;
   height: 150px;
@@ -141,26 +105,26 @@ const TextareaWrapper = styled.div`
   align-items: stretch;
 `;
 
-const StyledTextarea = styled(Input)`
-  background: ${({ theme }) => theme.colors.gray2};
-  border: 1.5px solid ${({ theme }) => theme.colors.gray6};
-  border-radius: 16px;
-  color: ${({ theme }) => theme.colors.gray12};
-  font-family: ${({ theme }) =>
-    theme?.typography?.fontFamily?.primary || "Inter, system-ui, sans-serif"};
-  font-weight: 400;
-  width: 100%;
-  min-height: 150px;
-  padding: 20px 2px 2px 12px;
-  resize: none;
-  box-shadow: none;
+// const StyledTextarea = styled(Input)`
+//   background: ${({ theme }) => theme.colors.gray2};
+//   border: 1.5px solid ${({ theme }) => theme.colors.gray6};
+//   border-radius: 16px;
+//   color: ${({ theme }) => theme.colors.gray12};
+//   font-family: ${({ theme }) =>
+//     theme?.typography?.fontFamily?.primary || "Inter, system-ui, sans-serif"};
+//   font-weight: 400;
+//   width: 100%;
+//   min-height: 150px;
+//   padding: 20px 2px 2px 12px;
+//   resize: none;
+//   box-shadow: none;
 
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.gray11};
-    opacity: 1;
-    font-weight: 400;
-  }
-`;
+//   &::placeholder {
+//     color: ${({ theme }) => theme.colors.gray11};
+//     opacity: 1;
+//     font-weight: 400;
+//   }
+// `;
 
 const PaperclipIcon = styled.div`
   position: absolute;
@@ -168,7 +132,6 @@ const PaperclipIcon = styled.div`
   bottom: 16px;
   z-index: 2;
   font-size: 20px;
-  color: ${({ theme }) => theme.colors.gray8};
 `;
 
 const RunButton = styled.div`
