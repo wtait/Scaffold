@@ -89,7 +89,7 @@ npm run dev
 
 1. Start the frontend: `cd frontend && npm run dev`
 2. In a new terminal, start the MCP server: `beam serve src/tools.py:s` -> copy URL displayed in terminal
-3. In a new terminal window, start the agent: `beam serve src/agent.py:agent` -> modify the URL in src/agent.py to point to the above MCP server URL
+3. In a new terminal window, start the agent: `beam serve src/agent.py:handler` -> modify the URL in src/agent.py to point to the above MCP server URL
 4. In the `frontend` directory, copy `.env.template` to `.env`, and replace the token with your `Beam` [token](https://platform.beam.cloud/settings/api-keys), and the URL with the websocket URL printed in the shell
 5. Start interacting with the app in your browser!
 6. If you want to change the prompt, edit `baml_src/build.baml` and run `make generate` to regenerate the BAML clients
