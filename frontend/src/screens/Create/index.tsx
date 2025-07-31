@@ -577,7 +577,7 @@ const Create = () => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            //disabled={!isConnected || !iframeReady}
+            disabled={!isConnected || !iframeReady}
           />
           <Button
             onClick={handleSendMessage}
