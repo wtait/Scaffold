@@ -1,17 +1,19 @@
-import { MessageType, Sender } from "../../types/messages";
 import {
-  faDesktop,
-  faHeart,
-  faMobile,
-  faPlay,
-  faRotateRight,
-  faSpinner,
-  faTablet,
-  faUpRightFromSquare,
-} from "@fortawesome/pro-regular-svg-icons";
+  ComputerIcon,
+  ExternalLink,
+  Heart,
+  Loader2,
+  PhoneIcon,
+  Play,
+  RotateCcw,
+  TabletIcon,
+} from "lucide-react";
+import { MessageType, Sender } from "../../types/messages";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BEAM_CONFIG } from "../../config/beam";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { Message } from "../../types/messages";
 import styled from "styled-components";
 import { useLocation } from "react-router-dom";
@@ -86,7 +88,7 @@ const Create = () => {
         console.log("Processing INIT message:", id);
       }
 
-      if (message.data.url && message.data.sandbox_id) {
+      if (typeof message.data.url === "string" && message.data.sandbox_id) {
         setIframeUrl(message.data.url);
         setIframeError(false);
       }
@@ -375,7 +377,7 @@ const Create = () => {
       if (typeof errorMsg === "string") {
         errorString = errorMsg;
       } else if (errorMsg && typeof errorMsg === "object") {
-        const errorObj = errorMsg as any;
+        const errorObj = errorMsg as { message?: unknown };
         if (errorObj.message) {
           errorString = String(errorObj.message);
         }
@@ -458,7 +460,7 @@ const Create = () => {
       hasConnectedRef.current = true;
       connect();
     }
-  }, [isConnected]);
+  }, [isConnected, connect]);
 
   // Clear processed message IDs when connection is lost
   useEffect(() => {
@@ -497,14 +499,12 @@ const Create = () => {
 
   const LoadingState = () => (
     <IframeErrorContainer>
-      <SpinningIcon icon={faSpinner} size={64} color="gray8" />
-      <AnimatedTypography
-        variant="textLg"
-        color="gray11"
-        style={{ marginTop: "24px" }}
-      >
+      <SpinningIcon>
+        <Loader2 size={64} />
+      </SpinningIcon>
+      <AnimatedText style={{ marginTop: "24px" }}>
         Connecting to Workspace...
-      </AnimatedTypography>
+      </AnimatedText>
       <p style={{ marginTop: "12px", textAlign: "center" }}>
         Please wait while we setup your workspace and load the website.
       </p>
@@ -513,14 +513,12 @@ const Create = () => {
 
   const UpdateInProgressState = () => (
     <IframeErrorContainer>
-      <SpinningIcon icon={faSpinner} size={64} color="gray8" />
-      <AnimatedTypography
-        variant="textLg"
-        color="gray11"
-        style={{ marginTop: "24px" }}
-      >
+      <SpinningIcon>
+        <Loader2 size={64} />
+      </SpinningIcon>
+      <AnimatedText style={{ marginTop: "24px" }}>
         Updating Workspace...
-      </AnimatedTypography>
+      </AnimatedText>
       <p style={{ marginTop: "12px", textAlign: "center" }}>
         Please wait while we apply your changes to the website.
       </p>
@@ -536,14 +534,22 @@ const Create = () => {
 
         <ChatHistory ref={chatHistoryRef}>
           {messages
-            .filter((msg) => msg.data.text && msg.data.text.trim())
+            .filter(
+              (msg) =>
+                msg.data.text &&
+                typeof msg.data.text === "string" &&
+                msg.data.text.trim()
+            )
             .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
             .map((msg, index) => (
               <MessageContainer
                 key={msg.id || `msg-${index}-${msg.timestamp || Date.now()}`}
                 isUser={msg.data.sender === Sender.USER}
               >
-                <MessageBubble isUser={msg.data.sender === Sender.USER}>
+                <MessageBubble
+                  isUser={msg.data.sender === Sender.USER}
+                  className="border w-full bg-muted-foreground/10 rounded-md text-sm text-muted-foreground"
+                >
                   <p
                     style={{
                       whiteSpace: "pre-wrap",
@@ -551,7 +557,7 @@ const Create = () => {
                         msg.data.sender === Sender.USER ? "white" : "gray12",
                     }}
                   >
-                    {msg.data.text}
+                    {String(msg.data.text || "")}
                   </p>
                   {msg.data.isStreaming && (
                     <TypingIndicator>
@@ -566,36 +572,35 @@ const Create = () => {
         </ChatHistory>
 
         <ChatInputContainer>
-          <ChatInput
+          <Input
             placeholder="Ask Beam..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            disabled={!isConnected || !iframeReady}
+            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+            //disabled={!isConnected || !iframeReady}
           />
-          <SendButton
+          <Button
             onClick={handleSendMessage}
             disabled={!isConnected || !iframeReady || !inputValue.trim()}
           >
             Send
-          </SendButton>
+          </Button>
         </ChatInputContainer>
       </Sidebar>
 
       <ResizeHandle onMouseDown={() => setIsResizing(true)} />
 
-      <MainContent hasIframe={!!iframeUrl}>
+      <MainContent hasIframe={!!iframeUrl} className="bg-card">
         {isConnected ? (
           <IframeContainer>
             <UrlBarContainer>
-              <Icon
-                icon={faRotateRight}
-                size={16}
-                color="gray11"
+              <IconButton
                 style={{ cursor: iframeUrl ? "pointer" : "not-allowed" }}
                 onClick={iframeUrl ? refreshIframe : undefined}
                 title="Refresh"
-              />
+              >
+                <RotateCcw size={16} />
+              </IconButton>
               <UrlInput value={iframeUrl || ""} readOnly />
               <a
                 href={iframeUrl || undefined}
@@ -608,40 +613,23 @@ const Create = () => {
                 }}
                 tabIndex={iframeUrl ? 0 : -1}
               >
-                <Icon
-                  icon={faUpRightFromSquare}
-                  size={16}
-                  color="gray11"
-                  title="Open in new tab"
-                />
+                <ExternalLink size={16} />
               </a>
             </UrlBarContainer>
             <IframeArea>
               {iframeError ? (
                 <IframeErrorContainer>
-                  <Icon icon={faHeart} size={64} color="gray8" />
-                  <Typography
-                    variant="textLg"
-                    color="gray11"
-                    style={{ marginTop: "24px" }}
-                  >
+                  <Heart size={64} />
+                  <ErrorTitle style={{ marginTop: "24px" }}>
                     Failed to load website
-                  </Typography>
-                  <Typography
-                    variant="textSm"
-                    color="gray10"
-                    style={{ marginTop: "12px", textAlign: "center" }}
-                  >
+                  </ErrorTitle>
+                  <ErrorText style={{ marginTop: "12px", textAlign: "center" }}>
                     {iframeUrl} took too long to load or failed to respond.
-                  </Typography>
-                  <Typography
-                    variant="textSm"
-                    color="gray10"
-                    style={{ marginTop: "8px", textAlign: "center" }}
-                  >
+                  </ErrorText>
+                  <ErrorText style={{ marginTop: "8px", textAlign: "center" }}>
                     This could be due to network issues or the website being
                     temporarily unavailable.
-                  </Typography>
+                  </ErrorText>
                 </IframeErrorContainer>
               ) : !iframeUrl ? (
                 <IframeOverlay>
@@ -770,7 +758,7 @@ const Create = () => {
                   }
                   onClick={() => setSelectedDevice("mobile")}
                 >
-                  <Icon icon={faMobile} size={18} />
+                  <PhoneIcon />
                 </DeviceButton>
                 <DeviceButton
                   active={selectedDevice === "tablet"}
@@ -782,7 +770,7 @@ const Create = () => {
                   }
                   onClick={() => setSelectedDevice("tablet")}
                 >
-                  <Icon icon={faTablet} size={18} />
+                  <TabletIcon />
                 </DeviceButton>
                 <DeviceButton
                   active={selectedDevice === "desktop"}
@@ -794,7 +782,7 @@ const Create = () => {
                   }
                   onClick={() => setSelectedDevice("desktop")}
                 >
-                  <Icon icon={faDesktop} size={18} />
+                  <ComputerIcon />
                 </DeviceButton>
               </DeviceGroup>
               <DeployButton
@@ -811,41 +799,34 @@ const Create = () => {
           </IframeContainer>
         ) : (
           <>
-            <Icon icon={faHeart} size={64} color="gray8" />
-            <Typography
-              variant="textLg"
-              color="gray11"
+            <Heart size={64} />
+            <ConnectTitle
               style={{ marginTop: "24px" }}
+              className="text-muted-foreground"
             >
               Connect to start building
-            </Typography>
+            </ConnectTitle>
 
             {error && (
-              <ErrorMessage>
-                <Typography variant="textSm" color="red">
-                  Error: {error}
-                </Typography>
+              <ErrorMessage className="text-destructive">
+                <ErrorText>Error: {error}</ErrorText>
               </ErrorMessage>
             )}
 
             <Checklist>
               <ChecklistItem>
-                <Icon icon={faPlay} color="gray10" />
-                <Typography variant="textSm" color="gray10">
-                  Connect to Workspace
-                </Typography>
+                <Play size={16} />
+                <ChecklistText>Connect to Workspace</ChecklistText>
               </ChecklistItem>
               <ChecklistItem>
-                <Icon icon={faPlay} color="gray10" />
-                <Typography variant="textSm" color="gray10">
-                  Chat with AI in the sidebar
-                </Typography>
+                <Play size={16} />
+                <ChecklistText>Chat with AI in the sidebar</ChecklistText>
               </ChecklistItem>
               <ChecklistItem>
-                <Icon icon={faPlay} color="gray10" />
-                <Typography variant="textSm" color="gray10">
+                <Play size={16} />
+                <ChecklistText>
                   Select specific elements to modify
-                </Typography>
+                </ChecklistText>
               </ChecklistItem>
             </Checklist>
           </>
@@ -862,11 +843,9 @@ const PageContainer = styled.div`
   flex-direction: row;
   width: 100%;
   height: 100%;
-  background-color: ${({ theme }) => theme.colors.gray3};
 `;
 
 const Sidebar = styled.div`
-  background-color: ${({ theme }) => theme.colors.gray2};
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -881,7 +860,6 @@ const MainContent = styled.div<{ hasIframe: boolean }>`
   align-items: ${({ hasIframe }) => (hasIframe ? "stretch" : "center")};
   justify-content: ${({ hasIframe }) => (hasIframe ? "stretch" : "center")};
   gap: ${({ hasIframe }) => (hasIframe ? "0" : "24px")};
-  background-color: ${({ theme }) => theme.colors.gray1};
 `;
 
 const Checklist = styled.div`
@@ -908,7 +886,7 @@ const BeamHeader = styled.div`
 const ChatHistory = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   overflow-y: auto;
   flex-grow: 1;
 `;
@@ -920,8 +898,6 @@ const MessageContainer = styled.div<{ isUser: boolean }>`
 `;
 
 const MessageBubble = styled.div<{ isUser: boolean }>`
-  background-color: ${({ isUser, theme }) =>
-    isUser ? theme.colors.blue9 : theme.colors.gray4};
   padding: 12px;
   border-radius: 8px;
   max-width: 70%;
@@ -934,41 +910,8 @@ const ChatInputContainer = styled.div`
   gap: 8px;
 `;
 
-const ChatInput = styled.input`
-  flex-grow: 1;
-  background-color: ${({ theme }) => theme.colors.gray1};
-  border: 1px solid ${({ theme }) => theme.colors.gray6};
-  border-radius: 8px;
-  padding: 12px;
-  color: ${({ theme }) => theme.colors.gray12};
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.gray9};
-  }
-`;
-
-const SendButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.blue9};
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 14px;
-
-  &:hover:not(:disabled) {
-    background-color: ${({ theme }) => theme.colors.blue10};
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.gray6};
-    cursor: not-allowed;
-  }
-`;
-
 const ErrorMessage = styled.div`
-  background-color: ${({ theme }) => theme.colors.red3};
-  border: 1px solid ${({ theme }) => theme.colors.red6};
+  border: 1px solid #f87171;
   border-radius: 6px;
   padding: 12px;
   margin-top: 16px;
@@ -985,7 +928,7 @@ const TypingDot = styled.div`
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.gray8};
+  background-color: #9ca3af;
   animation: typing 1.4s infinite ease-in-out;
 
   &:nth-child(1) {
@@ -1012,16 +955,15 @@ const TypingDot = styled.div`
 
 const ResizeHandle = styled.div`
   width: 4px;
-  background-color: ${({ theme }) => theme.colors.gray6};
   cursor: col-resize;
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.gray8};
+    background-color: #9ca3af;
   }
 
   &:active {
-    background-color: ${({ theme }) => theme.colors.blue9};
+    background-color: #3b82f6;
   }
 `;
 
@@ -1073,8 +1015,58 @@ const IframeErrorContainer = styled.div`
   gap: 24px;
 `;
 
-const AnimatedTypography = styled(Typography)`
+const IframeOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+`;
+
+const SpinningIcon = styled.div`
+  animation: spin 1s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+`;
+
+const AnimatedText = styled.div`
+  font-size: 18px;
+  font-weight: 500;
+  color: #374151;
   animation: pulse 1.5s infinite;
+
   @keyframes pulse {
     0% {
       opacity: 1;
@@ -1088,47 +1080,40 @@ const AnimatedTypography = styled(Typography)`
   }
 `;
 
-const IframeOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: ${({ theme }) => theme.colors.gray1};
-  z-index: 2;
+const ErrorTitle = styled.div`
+  font-size: 18px;
+  font-weight: 500;
+  color: #374151;
 `;
 
-const SpinningIcon = styled(Icon)`
-  animation: spin 1s linear infinite;
+const ErrorText = styled.div`
+  font-size: 14px;
+`;
 
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
+const ConnectTitle = styled.div`
+  font-size: 18px;
+  font-weight: 500;
+`;
+
+const ChecklistText = styled.div`
+  font-size: 14px;
+  color: #6b7280;
 `;
 
 const UrlBarContainer = styled.div`
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.gray2};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray5};
+  background: #e9ecef;
+  border-bottom: 1px solid #e5e7eb;
   padding: 6px 12px;
   gap: 8px;
 `;
 
 const UrlInput = styled.input`
   flex: 1;
-  background: ${({ theme }) => theme.colors.gray3};
+  background: #f1f3f5;
   border: none;
-  color: ${({ theme }) => theme.colors.gray11};
+  color: #374151;
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 14px;
@@ -1140,8 +1125,8 @@ const BottomBar = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: ${({ theme }) => theme.colors.gray2};
-  border-top: 1px solid ${({ theme }) => theme.colors.gray5};
+  background: #e9ecef;
+  border-top: 1px solid #e5e7eb;
   padding: 0 24px;
   height: 56px;
   position: absolute;
@@ -1157,15 +1142,10 @@ const ToggleGroup = styled.div`
 `;
 
 const ToggleButton = styled.button<{ active?: boolean }>`
-  background: ${({ active, theme }) =>
-    active ? theme.colors.gray4 : theme.colors.gray2};
-  color: ${({ active, theme, disabled }) =>
-    disabled
-      ? theme.colors.gray7
-      : active
-      ? theme.colors.gray12
-      : theme.colors.gray10};
-  border: 1px solid ${({ theme }) => theme.colors.gray6};
+  background: ${({ active }) => (active ? "#f8f9fa" : "#e9ecef")};
+  color: ${({ active, disabled }) =>
+    disabled ? "#9ca3af" : active ? "#1f2937" : "#6b7280"};
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   padding: 6px 18px;
   font-size: 15px;
@@ -1173,7 +1153,7 @@ const ToggleButton = styled.button<{ active?: boolean }>`
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   transition: background 0.15s, color 0.15s;
   &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.gray5};
+    background: #e5e7eb;
   }
 `;
 
@@ -1183,11 +1163,10 @@ const DeviceGroup = styled.div`
 `;
 
 const DeviceButton = styled.button<{ active?: boolean }>`
-  background: ${({ active, theme }) =>
-    active ? theme.colors.blue9 : theme.colors.gray2};
-  color: ${({ active, theme, disabled }) =>
-    disabled ? theme.colors.gray7 : active ? "white" : theme.colors.gray10};
-  border: 1px solid ${({ theme }) => theme.colors.gray6};
+  background: ${({ active }) => (active ? "#3b82f6" : "#e9ecef")};
+  color: ${({ active, disabled }) =>
+    disabled ? "#9ca3af" : active ? "white" : "#6b7280"};
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   padding: 6px 14px;
   font-size: 14px;
@@ -1195,13 +1174,13 @@ const DeviceButton = styled.button<{ active?: boolean }>`
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   transition: background 0.15s, color 0.15s;
   &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.blue8};
+    background: #1d4ed8;
     color: white;
   }
 `;
 
 const DeployButton = styled.button`
-  background: ${({ theme }) => theme.colors.violet9};
+  background: #7c3aed;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1212,6 +1191,6 @@ const DeployButton = styled.button`
   transition: background 0.15s;
   opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
   &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.violet10};
+    background: #6d28d9;
   }
 `;

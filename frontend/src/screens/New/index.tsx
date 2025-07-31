@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -15,9 +16,9 @@ const NewScreen: React.FC = () => {
   };
 
   return (
-    <Outer>
-      <CenterColumn>
-        <LogoTitleGroup>
+    <Outer className="flex flex-row items-center flex-1">
+      <CenterColumn className="flex flex-col gap-16 flex-1">
+        <LogoTitleGroup className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold">What do you want build?</h1>
           <p className="text-lg font-normal">
             Build a website with Beam Sandboxes.
@@ -41,19 +42,10 @@ const NewScreen: React.FC = () => {
               }}
             />
             <RunButton>
-              <button onClick={handleStartBuilding}>Start Building</button>
+              <Button onClick={handleStartBuilding}>Start Building</Button>
             </RunButton>
           </TextareaWrapper>
         </PromptCard>
-        <TemplatesSection>
-          <TemplatesHeader>
-            <h2 style={{ marginBottom: 8 }}>Quickstart templates</h2>
-            <p>
-              Get started instantly with a framework or integration of your
-              choice.
-            </p>
-          </TemplatesHeader>
-        </TemplatesSection>
       </CenterColumn>
     </Outer>
   );
@@ -65,7 +57,7 @@ const Outer = styled.div`
   min-height: 100vh;
   width: 100vw;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
 `;
 
@@ -75,7 +67,6 @@ const CenterColumn = styled.div`
   align-items: center;
   width: 100vw;
   max-width: 100vw;
-  margin-top: 64px;
 `;
 
 const LogoTitleGroup = styled.div`
@@ -105,27 +96,6 @@ const TextareaWrapper = styled.div`
   align-items: stretch;
 `;
 
-// const StyledTextarea = styled(Input)`
-//   background: ${({ theme }) => theme.colors.gray2};
-//   border: 1.5px solid ${({ theme }) => theme.colors.gray6};
-//   border-radius: 16px;
-//   color: ${({ theme }) => theme.colors.gray12};
-//   font-family: ${({ theme }) =>
-//     theme?.typography?.fontFamily?.primary || "Inter, system-ui, sans-serif"};
-//   font-weight: 400;
-//   width: 100%;
-//   min-height: 150px;
-//   padding: 20px 2px 2px 12px;
-//   resize: none;
-//   box-shadow: none;
-
-//   &::placeholder {
-//     color: ${({ theme }) => theme.colors.gray11};
-//     opacity: 1;
-//     font-weight: 400;
-//   }
-// `;
-
 const PaperclipIcon = styled.div`
   position: absolute;
   left: 14px;
@@ -139,21 +109,4 @@ const RunButton = styled.div`
   right: 16px;
   bottom: 16px;
   z-index: 2;
-`;
-
-const TemplatesSection = styled.div`
-  width: 100%;
-  max-width: 1200px;
-  margin-top: 0px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const TemplatesHeader = styled.div`
-  margin-left: 0;
-  margin-bottom: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
 `;

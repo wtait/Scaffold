@@ -2,18 +2,18 @@ import "./App.css";
 
 import { Route, Routes } from "react-router-dom";
 
-// import CreateRoute from "./screens/Create";
+import CreateRoute from "./screens/Create";
 import NewScreen from "./screens/New";
 import styled from "styled-components";
 
 const App: React.FC = () => {
   return (
-    <Container>
+    <Container className="dark bg-background">
       {/* <Header /> */}
       <ContentContainer>
         <Routes>
           <Route path="/" element={<NewScreen />} />
-          {/* <Route path="/create" element={<CreateRoute />} /> */}
+          <Route path="/create" element={<CreateRoute />} />
         </Routes>
       </ContentContainer>
     </Container>
