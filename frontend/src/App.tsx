@@ -1,12 +1,14 @@
 import "./App.css";
-import styled from "styled-components";
-import { Routes, Route } from "react-router-dom";
+
+import { Route, Routes } from "react-router-dom";
+
 import CreateRoute from "./screens/Create";
 import NewScreen from "./screens/New";
+import styled from "styled-components";
 
 const App: React.FC = () => {
   return (
-    <Container>
+    <Container className="dark bg-background">
       {/* <Header /> */}
       <ContentContainer>
         <Routes>
@@ -27,7 +29,6 @@ const Container = styled.div`
   justify-content: start;
   width: 100vw;
   height: 100vh;
-  background-color: ${({ theme }) => theme.colors.gray3};
   overflow: hidden;
 `;
 

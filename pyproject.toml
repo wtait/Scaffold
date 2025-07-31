@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "baml-py>=0.90.0",
+    "baml-py==0.90.2",
     "beam-client>=0.2.165",
     "beta9>=0.1.207",
     "fastmcp==2.9.0",

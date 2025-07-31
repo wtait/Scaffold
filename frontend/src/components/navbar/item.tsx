@@ -12,7 +12,9 @@ const NavbarItem: React.FC<NavbarItemProps> = ({ label, href, onClick, isActive 
   const handleOnClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     console.log("clicked");
-    onClick && onClick();
+    if (onClick) {
+      onClick();
+    }
   };
 
   return (

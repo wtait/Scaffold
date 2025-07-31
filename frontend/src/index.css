@@ -1,4 +1,3 @@
-
 a {
   font-weight: 500;
   color: #646cff;
@@ -14,7 +13,6 @@ body {
   place-items: center;
   width: 100vw;
   height: 100vh;
-  background-color: #1E1F24;
 }
 
 h1 {
