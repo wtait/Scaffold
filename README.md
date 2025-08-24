@@ -1,13 +1,14 @@
 # Lovable Clone - AI-Powered Web App Builder
 
 A real-time AI-powered web application builder inspired by [lovable.dev](https://lovable.dev).
-![Lovable Clone Demo](assets/lovable-demo.gif)
 
-> To learn about the architecture in detail, read the full post [on our blog](https://www.beam.cloud/blog/agentic-apps).
+![Lovable Clone Demo](assets/lovable-demo.gif)
 
 ## ️Architecture
 
 This project demonstrates how to build a simple agent using sandboxed environments, MCP servers, and [BAML](https://github.com/BoundaryML/baml). It's hosted on [beam.cloud](https://beam.cloud).
+
+> To learn about the architecture in detail, read the full post [on our blog](https://www.beam.cloud/blog/agentic-apps).
 
 The application consists of three main components:
 
