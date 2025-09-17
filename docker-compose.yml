@@ -67,6 +67,15 @@ services:
         python -m uvicorn src.websocket_server:app --host 0.0.0.0 --port 8000 --reload
       "
 
+  # App Preview Sandbox (pre-built React environment for dynamic containers)
+  app-preview-sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    image: app-preview-sandbox:latest
+    command: /bin/true  # This service just builds the image and exits
+    restart: "no"
+
   # Frontend (React app)
   frontend:
     build:
@@ -79,6 +88,7 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+      - app-preview-sandbox
     volumes:
       - ./frontend:/app
       - /app/node_modules

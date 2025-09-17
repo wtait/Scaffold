@@ -50,8 +50,8 @@ echo "OPENAI_API_KEY=your_openai_api_key" >> .env
 ### 2. Start with Docker Compose
 
 ```bash
-# Start all services
-docker-compose up -d
+# Start all services (builds sandbox image automatically)
+docker-compose up --build -d
 
 # View logs
 docker-compose logs -f
@@ -59,6 +59,15 @@ docker-compose logs -f
 # Stop services
 docker-compose down
 ```
+
+**What this single command does:**
+- 🏗️ Builds all images (frontend, backend, app-preview-sandbox)
+- 🚀 Starts all services:
+  - PostgreSQL database (port 5432)
+  - MinIO object storage (ports 9000, 9001) 
+  - Backend API server (port 8000)
+  - Frontend React app (port 3000)
+  - Pre-built sandbox image for dynamic code execution
 
 ### 3. Access the Application
 

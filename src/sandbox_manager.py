@@ -55,7 +55,7 @@ class DockerSandboxManager(SandboxManager):
     """Docker-based sandbox implementation for local development"""
     
     def __init__(self, base_image: str = None, working_dir: str = "/app"):
-        self.base_image = base_image or "lovable-clone-sandbox:latest"
+        self.base_image = base_image or "app-preview-sandbox:latest"
         self.working_dir = working_dir
         self.containers: Dict[str, str] = {}  # session_id -> container_id
         self.ports: Dict[str, int] = {}  # session_id -> port
