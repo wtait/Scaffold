@@ -11,7 +11,7 @@ import {
 import { MessageType, Sender } from "../../types/messages";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { BACKEND_CONFIG, BEAM_CONFIG } from "../../config/backend";
+import { BACKEND_CONFIG } from "../../config/backend";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Message } from "../../types/messages";
@@ -395,7 +395,7 @@ const Create = () => {
     sessionId: sessionId,
     handlers: messageHandlers,
     onConnect: () => {
-      console.log("Connected to Beam Cloud");
+      console.log("Connected to workspace");
     },
     onDisconnect: () => {
       hasConnectedRef.current = false;
@@ -568,9 +568,9 @@ const Create = () => {
   return (
     <PageContainer>
       <Sidebar style={{ width: `${sidebarWidth}px` }}>
-        <BeamHeader>
-          <div>Beam</div>
-        </BeamHeader>
+        <AppHeader>
+          <div>AI Builder</div>
+        </AppHeader>
 
         <ChatHistory ref={chatHistoryRef}>
           {messages
@@ -613,7 +613,7 @@ const Create = () => {
 
         <ChatInputContainer>
           <Input
-            placeholder="Ask Beam..."
+            placeholder="Ask AI Assistant..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -916,7 +916,7 @@ const ChecklistItem = styled.div`
   gap: 12px;
 `;
 
-const BeamHeader = styled.div`
+const AppHeader = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;

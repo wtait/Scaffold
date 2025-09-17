@@ -1,6 +1,6 @@
 # Platform-Agnostic AI App Builder
 
-A real-time AI-powered web application builder that can run on any cloud provider or on-premises infrastructure. This project has been migrated from the original Beam-dependent version to be completely platform-agnostic.
+A real-time AI-powered web application builder that can run on any cloud provider or on-premises infrastructure. Built with modern, open-source technologies for maximum flexibility and scalability.
 
 ![Demo](assets/lovable-demo.gif)
 
@@ -263,15 +263,25 @@ python -m pytest tests/integration/
 
 ---
 
-## 📈 Migration from Beam
+## 🏛️ Architecture Overview
 
-This version has been migrated from the original Beam-dependent implementation. Key changes:
+This application is built with a modern, microservices-oriented architecture:
 
-- **WebSocket Server**: Replaced `@realtime` decorator with FastAPI WebSockets
-- **Sandboxes**: Replaced Beam Sandboxes with Docker containers
-- **Storage**: Added S3-compatible storage with local fallback
-- **Database**: Added PostgreSQL for session and file persistence
-- **LLM Support**: Added multi-provider support beyond OpenAI
-- **Configuration**: Environment-based configuration instead of Beam secrets
+### Core Technologies
+- **FastAPI**: High-performance Python web framework with WebSocket support
+- **React + TypeScript**: Modern frontend with real-time UI updates
+- **Docker**: Containerized sandboxes for secure code execution
+- **PostgreSQL**: Reliable database for session and file persistence
+- **S3-Compatible Storage**: Flexible object storage (MinIO for local, AWS S3 for cloud)
 
-The migration maintains API compatibility where possible, allowing gradual transition for existing integrations.
+### Key Design Principles
+- **Cloud-Agnostic**: Deploy anywhere - AWS, GCP, Azure, or on-premises
+- **Multi-LLM Support**: Switch between OpenAI, Anthropic, Google, or add custom providers
+- **Scalable Architecture**: Each component can be scaled independently
+- **Security First**: Isolated Docker sandboxes with proper resource limits
+- **Open Source**: No vendor lock-in, fully customizable
+
+### Component Communication
+- **WebSocket Streams**: Real-time bidirectional communication between frontend and backend
+- **Docker API**: Secure container orchestration for code execution
+- **REST APIs**: Standard HTTP endpoints for configuration and management
