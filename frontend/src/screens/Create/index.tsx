@@ -11,7 +11,7 @@ import {
 import { MessageType, Sender } from "../../types/messages";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { BEAM_CONFIG } from "../../config/beam";
+import { BACKEND_CONFIG, BEAM_CONFIG } from "../../config/backend";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Message } from "../../types/messages";
@@ -42,8 +42,20 @@ const Create = () => {
   const processedMessageIds = useRef<Set<string>>(new Set());
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const sessionId =
-    searchParams.get("session_id") || location.state?.session_id;
+  
+  // Generate UUID v4 if no session ID is provided
+  const generateUUID = (): string => {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
+
+  // Use useState to ensure session ID is stable across re-renders
+  const [sessionId] = useState(() => 
+    searchParams.get("session_id") || location.state?.session_id || generateUUID()
+  );
   const initialPromptSent = useRef(false);
   const [selectedDevice, setSelectedDevice] = useState<
     "mobile" | "tablet" | "desktop"
@@ -378,8 +390,8 @@ const Create = () => {
   };
 
   const { isConnected, error, connect, send } = useMessageBus({
-    wsUrl: BEAM_CONFIG.WS_URL,
-    token: BEAM_CONFIG.TOKEN,
+    wsUrl: `${BACKEND_CONFIG.WS_URL}/${sessionId || 'unknown'}`,
+    token: '', // No token needed for platform-agnostic version
     sessionId: sessionId,
     handlers: messageHandlers,
     onConnect: () => {

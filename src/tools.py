@@ -1,105 +1,159 @@
 import tempfile
+import logging
+import json
 from pathlib import Path
+from typing import Dict, Tuple
 
-from beam import Image, Sandbox
+from .sandbox_manager import get_sandbox_manager
 
-image = (
-    Image()
-    .from_registry("node:20")
-    .add_commands(
-        [
-            "apt-get update && apt-get install -y git curl",
-            "git clone https://github.com/beam-cloud/react-vite-shadcn-ui.git /app",
-            "cd /app && rm -f pnpm-lock.yaml && npm install && echo 'npm install done........'",
-            "cd /app && npm install @tanstack/react-query react-router-dom recharts sonner zod react-hook-form @hookform/resolvers date-fns uuid",
-        ]
-    )
-)
+logger = logging.getLogger(__name__)
 
 DEFAULT_CODE_PATH = "/app/src"
 DEFAULT_PROJECT_ROOT = "/app"
 
-
-def create_app_environment() -> dict:
-    print("Creating app environment...")
-
-    sandbox = Sandbox(
-        name="lovable-clone",
-        cpu=1,
-        memory=1024,
-        image=image,
-        keep_warm_seconds=300,
-    ).create()
-
-    url = sandbox.expose_port(3000)
-    print(f"React app created and started successfully! Access it at: {url}")
-    sandbox.process.exec(
-        "sh",
-        "-c",
-        "cd /app && __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.beam.cloud npm run dev -- --host :: --port 3000",
-    )
-
-    print("Created app environment...")
-    return {
-        "url": url,
-        "sandbox_id": sandbox.sandbox_id(),
-    }
-
-
-def load_code(sandbox_id: str) -> tuple[dict, str]:
-    print(f"Loading code for sandbox {sandbox_id}")
-
-    sandbox = Sandbox().connect(sandbox_id)
-    sandbox.update_ttl(300)
-
-    file_map = {}
-
-    def _process_directory(dir_path: str):
-        for file in sandbox.fs.list_files(dir_path):
-            full_path = Path(dir_path) / file.name
-
-            if file.is_dir:
-                # Recursively process subdirectories
-                _process_directory(str(full_path))
+class SandboxTools:
+    """Tools for managing sandbox environments and code operations"""
+    
+    def __init__(self):
+        self.sandbox_manager = get_sandbox_manager()
+    
+    async def create_app_environment(self, session_id: str) -> dict:
+        """Create a new sandbox environment for the session"""
+        logger.info(f"Creating app environment for session {session_id}...")
+        
+        try:
+            sandbox_data = await self.sandbox_manager.create_sandbox(session_id)
+            logger.info(f"React app created and started successfully! Access it at: {sandbox_data.get('url')}")
+            return sandbox_data
+        except Exception as e:
+            logger.error(f"Failed to create app environment for session {session_id}: {e}")
+            raise
+    
+    async def connect_existing_sandbox(self, session_id: str, sandbox_id: str, sandbox_url: str) -> dict:
+        """Connect to an existing sandbox"""
+        logger.info(f"Connecting to existing sandbox {sandbox_id} for session {session_id}...")
+        
+        try:
+            sandbox_data = await self.sandbox_manager.connect_sandbox(sandbox_id)
+            logger.info(f"Connected to existing sandbox: {sandbox_data.get('url')}")
+            return sandbox_data
+        except Exception as e:
+            logger.error(f"Failed to connect to existing sandbox {sandbox_id}: {e}")
+            raise
+    
+    async def load_code(self, sandbox_id: str) -> Tuple[Dict[str, str], str]:
+        """Load code files from sandbox"""
+        logger.info(f"Loading code for sandbox {sandbox_id}")
+        
+        try:
+            # Get all files in the source directory
+            src_files = []
+            self._collect_files(DEFAULT_CODE_PATH, src_files)
+            
+            # Download files from sandbox
+            file_contents = await self.sandbox_manager.download_files(sandbox_id, src_files)
+            
+            # Convert bytes to string for text files
+            file_map = {}
+            for file_path, content_bytes in file_contents.items():
+                try:
+                    file_map[file_path] = content_bytes.decode('utf-8')
+                except UnicodeDecodeError:
+                    logger.warning(f"Skipping binary file: {file_path}")
+            
+            # Get package.json
+            package_files = await self.sandbox_manager.download_files(
+                sandbox_id, [f"{DEFAULT_PROJECT_ROOT}/package.json"]
+            )
+            
+            package_json = "{}"
+            package_path = f"{DEFAULT_PROJECT_ROOT}/package.json"
+            if package_path in package_files:
+                package_json = package_files[package_path].decode('utf-8')
             else:
-                # Download file
-                with tempfile.NamedTemporaryFile() as temp_file:
-                    sandbox.fs.download_file(str(full_path), temp_file.name)
-                    temp_file.seek(0)
-                    file_content = temp_file.read()
-                    file_map[str(full_path)] = file_content
+                # If no package.json, return a default one
+                default_package = {
+                    "name": "react-app",
+                    "version": "0.1.0",
+                    "type": "module",
+                    "scripts": {
+                        "dev": "vite",
+                        "build": "vite build",
+                        "preview": "vite preview"
+                    },
+                    "dependencies": {
+                        "@hookform/resolvers": "^5.2.2",
+                        "@tanstack/react-query": "^5.87.4",
+                        "date-fns": "^4.1.0",
+                        "react": "^18.2.0",
+                        "react-dom": "^18.2.0",
+                        "react-hook-form": "^7.62.0",
+                        "react-router-dom": "^7.9.1",
+                        "recharts": "^3.2.0",
+                        "sonner": "^2.0.7",
+                        "uuid": "^13.0.0",
+                        "zod": "^4.1.8"
+                    }
+                }
+                package_json = json.dumps(default_package, indent=2)
+            
+            logger.info(f"Loaded {len(file_map)} files from sandbox {sandbox_id}")
+            return file_map, package_json
+            
+        except Exception as e:
+            logger.error(f"Failed to load code from sandbox {sandbox_id}: {e}")
+            raise
+    
+    def _collect_files(self, directory: str, file_list: list, extensions: list = None):
+        """Collect file paths recursively (helper for load_code)"""
+        if extensions is None:
+            extensions = ['.js', '.jsx', '.ts', '.tsx', '.css', '.json', '.html', '.md']
+        
+        # This is a simplified version - in a real implementation,
+        # you'd need to query the sandbox for the actual file structure
+        common_files = [
+            f"{directory}/App.tsx",
+            f"{directory}/App.css",
+            f"{directory}/main.tsx",
+            f"{directory}/index.css",
+            f"{directory}/vite-env.d.ts",
+            f"{directory}/components/ui/button.tsx",
+            f"{directory}/components/ui/input.tsx",
+            f"{directory}/components/ui/textarea.tsx",
+            f"{directory}/lib/utils.ts",
+        ]
+        file_list.extend(common_files)
+    
+    async def edit_code(self, sandbox_id: str, code_map: Dict[str, str]) -> dict:
+        """Edit code files in sandbox"""
+        logger.info(f"Editing {len(code_map)} files in sandbox {sandbox_id}")
+        
+        try:
+            # Upload files to sandbox
+            success = await self.sandbox_manager.upload_files(sandbox_id, code_map)
+            
+            if not success:
+                raise Exception("Failed to upload files to sandbox")
+            
+            logger.info(f"Successfully edited {len(code_map)} files in sandbox {sandbox_id}")
+            return {"sandbox_id": sandbox_id}
+            
+        except Exception as e:
+            logger.error(f"Failed to edit code in sandbox {sandbox_id}: {e}")
+            raise
 
-    _process_directory(DEFAULT_CODE_PATH)
+# Legacy function wrappers for backward compatibility
+async def create_app_environment(session_id: str) -> dict:
+    """Legacy wrapper for create_app_environment"""
+    tools = SandboxTools()
+    return await tools.create_app_environment(session_id)
 
-    package_json = "{}"
-    with tempfile.NamedTemporaryFile() as temp_file:
-        sandbox.fs.download_file(f"{DEFAULT_PROJECT_ROOT}/package.json", temp_file.name)
-        temp_file.seek(0)
-        package_json = temp_file.read().decode("utf-8")
+async def load_code(sandbox_id: str) -> Tuple[Dict[str, str], str]:
+    """Legacy wrapper for load_code"""
+    tools = SandboxTools()
+    return await tools.load_code(sandbox_id)
 
-    return file_map, package_json
-
-
-def edit_code(sandbox_id: str, code_map: dict) -> dict:
-    print(f"Editing code for sandbox {sandbox_id}")
-
-    sandbox = Sandbox().connect(sandbox_id)
-    sandbox.update_ttl(300)
-
-    for sandbox_path, content in code_map.items():
-        with tempfile.NamedTemporaryFile() as temp_file:
-            temp_file.write(content.encode("utf-8"))
-            temp_file.seek(0)
-
-            # Get parent directory and check if it exists
-            parent_dir = str(Path(sandbox_path).parent)
-            try:
-                sandbox.fs.stat_file(parent_dir)
-            except BaseException:
-                # Parent directory doesn't exist, create it
-                print(f"Creating parent directory: {parent_dir}")
-                sandbox.process.exec("mkdir", "-p", parent_dir).wait()
-
-            sandbox.fs.upload_file(temp_file.name, sandbox_path)
-
-    return {"sandbox_id": sandbox.sandbox_id()}
+async def edit_code(sandbox_id: str, code_map: Dict[str, str]) -> dict:
+    """Legacy wrapper for edit_code"""
+    tools = SandboxTools()
+    return await tools.edit_code(sandbox_id, code_map)

@@ -169,7 +169,7 @@ export const useMessageBus = ({
           setError("Failed to send message. Please check your connection.");
         }
       } else {
-        setError("Not connected to Workspace.");
+        setError("Not connected to server.");
       }
     },
     [isConnected, sessionId]

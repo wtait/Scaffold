@@ -3,13 +3,16 @@ import time
 import uuid
 from dataclasses import dataclass
 from enum import Enum
-
-from beam import Image, PythonVersion, realtime
+import logging
 
 from baml_client.sync_client import BamlSyncClient, b
 from baml_client.types import Message as ConvoMessage
 
-from .tools import create_app_environment, edit_code, load_code
+from .tools import SandboxTools
+from .database import get_db_manager
+from .storage import get_storage_manager
+
+logger = logging.getLogger(__name__)
 
 
 class MessageType(Enum):
@@ -63,40 +66,113 @@ class Agent:
         self.model_client: BamlSyncClient = b
         self.session_data: dict = {}  # map of session -> session_data
         self.history: list[dict] = []
+        self.db_manager = get_db_manager()
+        self.storage_manager = get_storage_manager()
+        self.sandbox_tools = SandboxTools()
 
     async def init(self, session_id: str) -> bool:
         exists = await self.create_app_environment(session_id)
+        
+        # Create or get database session
+        db_session = self.db_manager.get_project_session(session_id)
+        if not db_session:
+            self.db_manager.create_project_session(
+                session_id=session_id,
+                metadata={"initialized_at": time.time()}
+            )
+        
         return exists
 
     async def create_app_environment(self, session_id: str):
         if session_id not in self.session_data:
-            self.session_data[session_id] = create_app_environment()
-            return False
+            # Check if session already exists in database
+            db_session = self.db_manager.get_project_session(session_id)
+            
+            if db_session and db_session.sandbox_id:
+                # Try to reuse existing sandbox
+                try:
+                    sandbox_data = await self.sandbox_tools.connect_existing_sandbox(
+                        session_id, db_session.sandbox_id, db_session.sandbox_url
+                    )
+                    self.session_data[session_id] = sandbox_data
+                    logger.info(f"Reconnected to existing sandbox for session {session_id}")
+                    return True
+                except Exception as e:
+                    logger.warning(f"Failed to reconnect to existing sandbox, creating new one: {e}")
+            
+            # Create new sandbox
+            try:
+                sandbox_data = await self.sandbox_tools.create_app_environment(session_id)
+                self.session_data[session_id] = sandbox_data
+                
+                # Update database with sandbox info
+                self.db_manager.update_project_session(
+                    session_id=session_id,
+                    sandbox_id=sandbox_data.get("sandbox_id"),
+                    sandbox_url=sandbox_data.get("url"),
+                    status="active"
+                )
+                
+                logger.info(f"Created new sandbox for session {session_id}")
+                return False
+            except Exception as e:
+                logger.error(f"Failed to create sandbox for session {session_id}: {e}")
+                raise
 
         return True
 
     async def load_code(self, *, session_id: str):
+        if session_id not in self.session_data:
+            raise ValueError(f"No sandbox found for session {session_id}")
+        
         sandbox_id = self.session_data[session_id]["sandbox_id"]
-        return load_code(sandbox_id)
+        return await self.sandbox_tools.load_code(sandbox_id)
 
     async def edit_code(self, *, session_id: str, code_map: dict):
+        if session_id not in self.session_data:
+            raise ValueError(f"No sandbox found for session {session_id}")
+        
         sandbox_id = self.session_data[session_id]["sandbox_id"]
-        return edit_code(sandbox_id, code_map)
+        result = await self.sandbox_tools.edit_code(sandbox_id, code_map)
+        
+        # Save files to database for versioning
+        for file_path, content in code_map.items():
+            self.db_manager.save_project_file(
+                session_id=session_id,
+                file_path=file_path,
+                content=content,
+                meta_data={"updated_at": time.time()}
+            )
+        
+        return result
 
-    async def add_to_history(self, user_feedback: str, agent_plan: str):
-        self.history.append(
-            {
-                "role": "user",
-                "content": user_feedback,
-            }
-        )
-
-        self.history.append(
-            {
-                "role": "assistant",
-                "content": agent_plan,
-            }
-        )
+    async def add_to_history(self, user_feedback: str, agent_plan: str, session_id: str = None):
+        user_msg = {
+            "role": "user",
+            "content": user_feedback,
+        }
+        assistant_msg = {
+            "role": "assistant",
+            "content": agent_plan,
+        }
+        
+        self.history.append(user_msg)
+        self.history.append(assistant_msg)
+        
+        # Save to database if session_id provided
+        if session_id:
+            self.db_manager.add_conversation_message(
+                session_id=session_id,
+                role="user",
+                content=user_feedback,
+                message_type="USER"
+            )
+            self.db_manager.add_conversation_message(
+                session_id=session_id,
+                role="assistant",
+                content=agent_plan,
+                message_type="AGENT_FINAL"
+            )
 
     def get_history(self):
         return [
@@ -140,7 +216,7 @@ class Agent:
                     session_id=session_id,
                 ).to_dict()
 
-                await self.add_to_history(feedback, partial.plan.value)
+                await self.add_to_history(feedback, partial.plan.value, session_id)
 
                 sent_plan = True
 
@@ -162,55 +238,4 @@ class Agent:
         ).to_dict()
 
 
-async def _load_agent():
-    agent = Agent()
-    print("Loaded agent")
-    return agent
-
-
-@realtime(
-    cpu=1.0,
-    memory=1024,
-    on_start=_load_agent,
-    image=Image(
-        python_packages="requirements.txt", python_version=PythonVersion.Python312
-    ),
-    secrets=["OPENAI_API_KEY"],
-    concurrent_requests=1000,
-    keep_warm_seconds=300,
-)
-async def handler(event, context):
-    agent: Agent = context.on_start_value
-    msg = json.loads(event)
-
-    match msg.get("type"):
-        case MessageType.USER.value:
-            session_id = msg["data"]["session_id"]
-
-            return agent.send_feedback(
-                session_id=session_id,
-                feedback=msg["data"]["text"],
-            )
-        case MessageType.INIT.value:
-            session_id = msg["data"]["session_id"]
-            exists = await agent.init(session_id=session_id)
-
-            data = agent.session_data[session_id]
-            data["exists"] = exists
-
-            return Message.new(
-                MessageType.INIT,
-                session_id=session_id,
-                data=data,
-            ).to_dict()
-
-        case MessageType.LOAD_CODE.value:
-            session_id = msg["data"]["session_id"]
-
-            code_map = await agent.load_code(
-                session_id=session_id,
-            )
-
-            return Message.new(MessageType.LOAD_CODE, code_map).to_dict()
-        case _:
-            return {}
+# The agent is now used by the websocket_server.py instead of Beam's realtime decorator

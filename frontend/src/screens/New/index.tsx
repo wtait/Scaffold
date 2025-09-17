@@ -33,7 +33,7 @@ const NewScreen: React.FC = () => {
         <LogoTitleGroup className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold">What do you want build?</h1>
           <p className="text-lg font-normal">
-            Build a website with Beam Sandboxes.
+            Build a website with AI-powered code generation.
           </p>
         </LogoTitleGroup>
         <PromptCard>

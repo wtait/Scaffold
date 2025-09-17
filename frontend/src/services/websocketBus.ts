@@ -22,9 +22,9 @@ export class WebSocketBus {
   }
 
   private websocketUrl(): string {
-    const url = new URL(this.config.url);
-    url.searchParams.set("auth_token", this.config.token);
-    return url.toString();
+    // For platform-agnostic version, the session ID is already in the URL
+    // No auth token needed
+    return this.config.url;
   }
 
   public async connect(): Promise<WebSocket> {
