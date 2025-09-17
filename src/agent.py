@@ -238,4 +238,4 @@ class Agent:
         ).to_dict()
 
 
-# The agent is now used by the websocket_server.py instead of Beam's realtime decorator
+# The agent is now used by the websocket_server.py for real-time communication

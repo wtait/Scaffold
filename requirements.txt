@@ -31,6 +31,5 @@ isort==5.13.2
 ruff==0.1.15
 
 # Legacy dependencies (can be removed after full migration)
-# These were from the original Beam-based implementation
 # fastmcp==2.9.0
 # mcp==1.9.4
